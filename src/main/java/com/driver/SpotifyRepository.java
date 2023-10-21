@@ -212,7 +212,7 @@ public class SpotifyRepository {
         if (song == null)
             throw new Exception("Song does not exist");
 
-        if (!songLikeMap.containsKey(song) || songLikeMap.get(song).contains(user)) {
+        if (!songLikeMap.containsKey(song) || !songLikeMap.get(song).contains(user)) {
             List<User> userList = songLikeMap.getOrDefault(song, new ArrayList<>());
             userList.add(user);
             songLikeMap.put(song, userList);
