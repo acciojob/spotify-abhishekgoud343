@@ -7,25 +7,27 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class SpotifyRepository {
-    public HashMap<Artist, List<Album>> artistAlbumMap;
-    public HashMap<Album, List<Song>> albumSongMap;
-    public HashMap<Playlist, List<Song>> playlistSongMap;
-    public HashMap<Playlist, List<User>> playlistListenerMap;
-    public HashMap<User, Playlist> creatorPlaylistMap;
-    public HashMap<User, List<Playlist>> userPlaylistMap;
-    public HashMap<Song, List<User>> songLikeMap;
-    public HashMap<Artist, List<User>> artistLikeMap;
+    private HashMap<Artist, List<Album>> artistAlbumMap;
+    private HashMap<Album, List<Song>> albumSongMap;
+    private HashMap<Artist, List<Song>> artistSongMap;
+    private HashMap<Playlist, List<Song>> playlistSongMap;
+    private HashMap<Playlist, List<User>> playlistListenerMap;
+    private HashMap<User, Playlist> creatorPlaylistMap;
+    private HashMap<User, List<Playlist>> userPlaylistMap;
+    private HashMap<Song, List<User>> songLikeMap;
+    private HashMap<Artist, List<User>> artistLikeMap;
 
-    public List<User> users;
-    public List<Song> songs;
-    public List<Playlist> playlists;
-    public List<Album> albums;
-    public List<Artist> artists;
+    private List<User> users;
+    private List<Song> songs;
+    private List<Playlist> playlists;
+    private List<Album> albums;
+    private List<Artist> artists;
 
     public SpotifyRepository() {
         //To avoid hitting apis multiple times, initialize all the hashmaps here with some dummy data
         artistAlbumMap = new HashMap<>();
         albumSongMap = new HashMap<>();
+        artistSongMap = new HashMap<>();
         playlistSongMap = new HashMap<>();
         playlistListenerMap = new HashMap<>();
         creatorPlaylistMap = new HashMap<>();
@@ -98,16 +100,25 @@ public class SpotifyRepository {
     }
 
     public Song createSong(String title, String albumName, int length) throws Exception {
-        Optional<Album> album = findAlbum(albumName);
-        if (album.isEmpty())
+        Optional<Album> optionalAlbum = findAlbum(albumName);
+        if (optionalAlbum.isEmpty())
             throw new Exception("Album does not exist");
+        Album album = optionalAlbum.get();
 
         Song song = new Song(title, length);
         songs.add(song);
 
-        List<Song> songList = albumSongMap.getOrDefault(album.get(), new ArrayList<>());
+        List<Song> songList = albumSongMap.getOrDefault(album, new ArrayList<>());
         songList.add(song);
-        albumSongMap.put(album.get(), songList);
+        albumSongMap.put(album, songList);
+
+        for (Artist artist : artistAlbumMap.keySet())
+            if (artistAlbumMap.get(artist).contains(album)) {
+                songList = artistSongMap.getOrDefault(artist, new ArrayList<>());
+                songList.add(song);
+                artistSongMap.put(artist, songList);
+                break;
+            }
 
         return song;
     }
@@ -206,40 +217,32 @@ public class SpotifyRepository {
     }
 
     public Song likeSong(String mobile, String songTitle) throws Exception {
-        Optional<User> user = findUser(mobile);
-        if (user.isEmpty())
+        Optional<User> optionalUser = findUser(mobile);
+        if (optionalUser.isEmpty())
             throw new Exception("User does not exist");
+        User user = optionalUser.get();
 
-        Optional<Song> song = findSong(songTitle);
-        if (song.isEmpty())
+        Optional<Song> optionalSong = findSong(songTitle);
+        if (optionalSong.isEmpty())
             throw new Exception("Song does not exist");
+        Song song = optionalSong.get();
 
-        if (!songLikeMap.containsKey(song.get()) || !songLikeMap.get(song.get()).contains(user.get())) {
-            List<User> userList = songLikeMap.getOrDefault(song.get(), new ArrayList<>());
-            userList.add(user.get());
-            songLikeMap.put(song.get(), userList);
+        if (!songLikeMap.containsKey(song) || !songLikeMap.get(song).contains(user)) {
+            List<User> userList = songLikeMap.getOrDefault(song, new ArrayList<>());
+            userList.add(user);
+            songLikeMap.put(song, userList);
 
-            //find the artist corresponding to the song
-            Optional<Album> album = Optional.empty();
-            for (Album a : albumSongMap.keySet())
-                if (albumSongMap.get(a).contains(song.get())) {
-                    album = Optional.of(a);
-                    break;
-                }
+            Artist artist = null;
+            for (Artist a : artistSongMap.keySet())
+                if (artistSongMap.get(a).contains(song))
+                    artist = a;
 
-            Optional<Artist> artist = Optional.empty();
-            for (Artist a : artistAlbumMap.keySet())
-                if (artistAlbumMap.get(a).contains(album.get())) {
-                    artist = Optional.of(a);
-                    break;
-                }
-
-            userList = artistLikeMap.getOrDefault(artist.get(), new ArrayList<>());
-            userList.add(user.get());
-            artistLikeMap.put(artist.get(), userList);
+            userList = artistLikeMap.getOrDefault(artist, new ArrayList<>());
+            userList.add(user);
+            artistLikeMap.put(artist, userList);
         }
 
-        return song.get();
+        return song;
     }
 
     public String mostPopularArtist() {

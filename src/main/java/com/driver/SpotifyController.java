@@ -83,7 +83,7 @@ public class SpotifyController {
     }
 
     @PutMapping("/find-playlist")
-    public String findPlaylist(String mobile, String playlistTitle) throws Exception {
+    public String findPlaylist(String mobile, String playlistTitle) {
         //Find the playlist with given title and add user as listener of that playlist and update user accordingly
         //If the user is creator or already a listener, do nothing
         //If the user does not exist, throw "User does not exist" exception
@@ -100,7 +100,7 @@ public class SpotifyController {
     }
 
     @PutMapping("/like-song")
-    public String likeSong(String mobile, String songTitle) throws Exception {
+    public String likeSong(String mobile, String songTitle) {
         //The user likes the given song. The corresponding artist of the song gets auto-liked
         //A song can be liked by a user only once. If a user tried to like a song multiple times, do nothing
         //However, an artist can indirectly have multiple likes from a user, if the user has liked multiple songs of that artist.
