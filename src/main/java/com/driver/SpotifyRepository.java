@@ -186,6 +186,12 @@ public class SpotifyRepository {
     }
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
+        if (mobile == null || mobile.isEmpty())
+            throw new Exception("User does not exist");
+
+        if (playlistTitle == null || playlistTitle.isEmpty())
+            throw new Exception("Playlist does not exist");
+
         User user = findUser(mobile);
         if (user == null)
             throw new Exception("User does not exist");
@@ -194,11 +200,7 @@ public class SpotifyRepository {
         if (playlist == null)
             throw new Exception("Playlist does not exist");
 
-        if (!playlistListenerMap.containsKey(playlist) || !playlistListenerMap.get(playlist).contains(user)) {
-            List<User> listenerList = playlistListenerMap.getOrDefault(playlist, new ArrayList<>());
-            listenerList.add(user);
-            playlistListenerMap.put(playlist, listenerList);
-        }
+        playlistListenerMap.computeIfAbsent(playlist, k -> new ArrayList<>()).add(user);
 
         return playlist;
     }
