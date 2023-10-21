@@ -3,6 +3,7 @@ package com.driver;
 import java.util.*;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 
 @Repository
@@ -199,11 +200,11 @@ public class SpotifyRepository {
     }
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
-        if (mobile == null || mobile.isEmpty())
-            throw new Exception("User does not exist");
+        if (!StringUtils.hasText(mobile))
+            throw new Exception("Invalid mobile number");
 
-        if (playlistTitle == null || playlistTitle.isEmpty())
-            throw new Exception("Playlist does not exist");
+        if (!StringUtils.hasText(playlistTitle))
+            throw new Exception("Invalid playlist title");
 
         Optional<User> optionalUser = findUser(mobile);
         if (optionalUser.isEmpty())
@@ -215,7 +216,14 @@ public class SpotifyRepository {
             throw new Exception("Playlist does not exist");
         Playlist playlist = optionalPlaylist.get();
 
-        playlistListenerMap.computeIfAbsent(playlist, k -> new ArrayList<>()).add(user);
+        if (!creatorPlaylistMap.containsKey(user) || creatorPlaylistMap.get(user) != playlist) {
+            List<User> listenerList = playlistListenerMap.getOrDefault(playlist, new ArrayList<>());
+
+            if (!listenerList.contains(user)) {
+                listenerList.add(user);
+                playlistListenerMap.put(playlist, listenerList);
+            }
+        }
 
         return playlist;
     }
