@@ -25,51 +25,23 @@ public class SpotifyService {
     }
 
     public Song createSong(String title, String albumName, int length) throws Exception {
-        Album album = spotifyRepository.findALbum(albumName);
-        if (album == null)
-            throw new Exception("Album does not exist");
-
-        return spotifyRepository.createSong(title, album, length);
+        return spotifyRepository.createSong(title, albumName, length);
     }
 
     public Playlist createPlaylistOnLength(String mobile, String title, int length) throws Exception {
-        User user = spotifyRepository.findUser(mobile);
-        if (user == null)
-            throw new Exception("User does not exist");
-
-        return spotifyRepository.createPlaylistOnLength(user, title, length);
+        return spotifyRepository.createPlaylistOnLength(mobile, title, length);
     }
 
     public Playlist createPlaylistOnName(String mobile, String title, List<String> songTitles) throws Exception {
-        User user = spotifyRepository.findUser(mobile);
-        if (user == null)
-            throw new Exception("User does not exist");
-
-        return spotifyRepository.createPlaylistOnName(user, title, songTitles);
+        return spotifyRepository.createPlaylistOnName(mobile, title, songTitles);
     }
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
-        User user = spotifyRepository.findUser(mobile);
-        if (user == null)
-            throw new Exception("User does not exist");
-
-        Playlist playlist = spotifyRepository.findPlaylistByTitle(playlistTitle);
-        if (playlist == null)
-            throw new Exception("Playlist does not exist");
-
-        return spotifyRepository.findPlaylist(user, playlist);
+        return spotifyRepository.findPlaylist(mobile, playlistTitle);
     }
 
     public Song likeSong(String mobile, String songTitle) throws Exception {
-        User user = spotifyRepository.findUser(mobile);
-        if (user == null)
-            throw new Exception("User does not exist");
-
-        Song song = spotifyRepository.findSong(songTitle);
-        if (song == null)
-            throw new Exception("Song does not exist");
-
-        return spotifyRepository.likeSong(user, song);
+        return spotifyRepository.likeSong(mobile, songTitle);
     }
 
     public String mostPopularArtist() {
