@@ -3,26 +3,25 @@ package com.driver;
 import java.util.*;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 
 @Repository
 public class SpotifyRepository {
-    public HashMap<Artist, List<Album>> artistAlbumMap;
-    public HashMap<Album, List<Song>> albumSongMap;
-    public HashMap<Artist, List<Song>> artistSongMap;
-    public HashMap<Playlist, List<Song>> playlistSongMap;
-    public HashMap<Playlist, List<User>> playlistListenerMap;
-    public HashMap<User, Playlist> creatorPlaylistMap;
-    public HashMap<User, List<Playlist>> userPlaylistMap;
-    public HashMap<Song, List<User>> songLikeMap;
-    public HashMap<Artist, List<User>> artistLikeMap;
+    private HashMap<Artist, List<Album>> artistAlbumMap;
+    private HashMap<Album, List<Song>> albumSongMap;
+    private HashMap<Artist, List<Song>> artistSongMap;
+    private HashMap<Playlist, List<Song>> playlistSongMap;
+    private HashMap<Playlist, List<User>> playlistListenerMap;
+    private HashMap<User, Playlist> creatorPlaylistMap;
+    private HashMap<User, List<Playlist>> userPlaylistMap;
+    private HashMap<Song, List<User>> songLikeMap;
+    private HashMap<Artist, List<User>> artistLikeMap;
 
-    public List<User> users;
-    public List<Song> songs;
-    public List<Playlist> playlists;
-    public List<Album> albums;
-    public List<Artist> artists;
+    private List<User> users;
+    private List<Song> songs;
+    private List<Playlist> playlists;
+    private List<Album> albums;
+    private List<Artist> artists;
 
     public SpotifyRepository() {
         //To avoid hitting apis multiple times, initialize all the hashmaps here with some dummy data
@@ -200,29 +199,17 @@ public class SpotifyRepository {
     }
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
-        if (!StringUtils.hasText(mobile))
-            throw new Exception("Invalid mobile number");
+        User user = findUser(mobile)
+            .orElseThrow(() -> new Exception("Invalid mobile number"));
 
-        if (!StringUtils.hasText(playlistTitle))
-            throw new Exception("Invalid playlist title");
+        Playlist playlist = findPlaylistByTitle(playlistTitle)
+            .orElseThrow(() -> new Exception("Invalid playlist title"));
 
-        Optional<User> optionalUser = findUser(mobile);
-        if (optionalUser.isEmpty())
-            throw new Exception("User does not exist");
-        User user = optionalUser.get();
+        List<User> listenerList = playlistListenerMap.getOrDefault(playlist, new ArrayList<>());
 
-        Optional<Playlist> optionalPlaylist = findPlaylistByTitle(playlistTitle);
-        if (optionalPlaylist.isEmpty())
-            throw new Exception("Playlist does not exist");
-        Playlist playlist = optionalPlaylist.get();
-
-        if (!creatorPlaylistMap.containsKey(user) || creatorPlaylistMap.get(user) != playlist) {
-            List<User> listenerList = playlistListenerMap.getOrDefault(playlist, new ArrayList<>());
-
-            if (!listenerList.contains(user)) {
-                listenerList.add(user);
-                playlistListenerMap.put(playlist, listenerList);
-            }
+        if (!listenerList.contains(user)) {
+            listenerList.add(user);
+            playlistListenerMap.put(playlist, listenerList);
         }
 
         return playlist;

@@ -1,7 +1,5 @@
 package com.driver;
 
-import java.util.List;
-
 public class Artist {
     private String name;
     private int likes;
