@@ -226,6 +226,7 @@ public class SpotifyRepository {
             if (artistSongMap.get(artist).contains(song)) {
                 artist.setLikes(artist.getLikes() + 1);
                 artistLikeMap.get(artist).add(user);
+                break;
             }
 
         return song;

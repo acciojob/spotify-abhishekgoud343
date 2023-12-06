@@ -45,18 +45,10 @@ public class SpotifyService {
     }
 
     public String mostPopularArtist() {
-        String artistName = spotifyRepository.mostPopularArtist();
-        if (artistName.isEmpty())
-            return "Artist db empty";
-
-        return artistName;
+        return spotifyRepository.mostPopularArtist();
     }
 
     public String mostPopularSong() {
-        String songName = spotifyRepository.mostPopularSong();
-        if (songName.isEmpty())
-            return "Song db empty";
-
-        return songName;
+        return spotifyRepository.mostPopularSong();
     }
 }
