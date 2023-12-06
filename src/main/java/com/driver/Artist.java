@@ -2,13 +2,13 @@ package com.driver;
 
 public class Artist {
     private String name;
-    private int likes;
+    private int likes = 0;
 
-    public Artist(){
+    public Artist() {
 
     }
 
-    public Artist(String name){
+    public Artist(String name) {
         this.name = name;
         this.likes = 0;
     }

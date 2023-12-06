@@ -3,9 +3,9 @@ package com.driver;
 public class Song {
     private String title;
     private int length;
-    private int likes;
+    private int likes = 0;
 
-    public Song(){
+    public Song() {
 
     }
 

@@ -6,7 +6,7 @@ public class Album {
     private String title;
     private Date releaseDate;
 
-    public Album(){
+    public Album() {
 
     }
 
