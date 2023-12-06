@@ -1,5 +1,6 @@
 package com.driver;
 
+
 import java.util.*;
 
 import org.springframework.stereotype.Repository;
@@ -100,25 +101,21 @@ public class SpotifyRepository {
     }
 
     public Song createSong(String title, String albumName, int length) throws Exception {
-        Optional<Album> optionalAlbum = findAlbum(albumName);
-        if (optionalAlbum.isEmpty())
-            throw new Exception("Album does not exist");
-        Album album = optionalAlbum.get();
+        Album album = findAlbum(albumName)
+                .orElseThrow(() -> new Exception("Album does not exist"));
 
         Song song = new Song(title, length);
         songs.add(song);
 
-        List<Song> songList = albumSongMap.getOrDefault(album, new ArrayList<>());
-        songList.add(song);
-        albumSongMap.put(album, songList);
+        albumSongMap.get(album).add(song);
 
         for (Artist artist : artistAlbumMap.keySet())
             if (artistAlbumMap.get(artist).contains(album)) {
-                songList = artistSongMap.getOrDefault(artist, new ArrayList<>());
-                songList.add(song);
-                artistSongMap.put(artist, songList);
+                artistSongMap.get(artist).add(song);
                 break;
             }
+
+        songLikeMap.put(song, new ArrayList<>());
 
         return song;
     }
@@ -132,10 +129,8 @@ public class SpotifyRepository {
     }
 
     public Playlist createPlaylistOnLength(String mobile, String title, int length) throws Exception {
-        Optional<User> optionalUser = findUser(mobile);
-        if (optionalUser.isEmpty())
-            throw new Exception("User does not exist");
-        User user = optionalUser.get();
+        User user = findUser(mobile)
+                .orElseThrow(() -> new Exception("User does not exist"));
 
         Playlist playlist = new Playlist(title);
         playlists.add(playlist);
@@ -161,10 +156,8 @@ public class SpotifyRepository {
     }
 
     public Playlist createPlaylistOnName(String mobile, String title, List<String> songTitles) throws Exception {
-        Optional<User> optionalUser = findUser(mobile);
-        if (optionalUser.isEmpty())
-            throw new Exception("User does not exist");
-        User user = optionalUser.get();
+        User user = findUser(mobile)
+                .orElseThrow(() -> new Exception("User does not exist"));
 
         Playlist playlist = new Playlist(title);
         playlists.add(playlist);
@@ -205,41 +198,32 @@ public class SpotifyRepository {
         Playlist playlist = findPlaylistByTitle(playlistTitle)
             .orElseThrow(() -> new Exception("Invalid playlist title"));
 
-        List<User> listenerList = playlistListenerMap.getOrDefault(playlist, new ArrayList<>());
+        if (creatorPlaylistMap.containsKey(user) && creatorPlaylistMap.get(user) == playlist || playlistListenerMap.get(playlist).contains(user))
+            return playlist;
+        playlistListenerMap.get(playlist).add(user);
 
-        if (!listenerList.contains(user)) {
-            listenerList.add(user);
-            playlistListenerMap.put(playlist, listenerList);
-        }
+        if (!userPlaylistMap.get(user).contains(playlist))
+            userPlaylistMap.get(user).add(playlist);
 
         return playlist;
     }
 
     public Song likeSong(String mobile, String songTitle) throws Exception {
-        Optional<User> optionalUser = findUser(mobile);
-        if (optionalUser.isEmpty())
-            throw new Exception("User does not exist");
-        User user = optionalUser.get();
+        User user = findUser(mobile)
+                .orElseThrow(() -> new Exception("User does not exist"));
 
-        Optional<Song> optionalSong = findSong(songTitle);
-        if (optionalSong.isEmpty())
-            throw new Exception("Song does not exist");
-        Song song = optionalSong.get();
+        Song song = findSong(songTitle)
+                .orElseThrow(() -> new Exception("Song does not exist"));
 
-        if (!songLikeMap.containsKey(song) || !songLikeMap.get(song).contains(user)) {
-            List<User> userList = songLikeMap.getOrDefault(song, new ArrayList<>());
-            userList.add(user);
-            songLikeMap.put(song, userList);
+        if (songLikeMap.get(song).contains(user))
+            return song;
 
-            Artist artist = null;
-            for (Artist a : artistSongMap.keySet())
-                if (artistSongMap.get(a).contains(song))
-                    artist = a;
+        song.setLikes(song.getLikes() + 1);
+        songLikeMap.get(song).add(user);
 
-            userList = artistLikeMap.getOrDefault(artist, new ArrayList<>());
-            userList.add(user);
-            artistLikeMap.put(artist, userList);
-        }
+        for (Artist artist : artistSongMap.keySet())
+            if (artistSongMap.get(artist).contains(song))
+                artistLikeMap.get(artist).add(user);
 
         return song;
     }
