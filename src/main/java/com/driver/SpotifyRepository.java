@@ -61,6 +61,7 @@ public class SpotifyRepository {
     public Artist createArtist(String name) {
         Artist artist = new Artist(name);
         artists.add(artist);
+        artistLikeMap.put(artist, new ArrayList<>());
 
         return artist;
     }
@@ -222,8 +223,10 @@ public class SpotifyRepository {
         songLikeMap.get(song).add(user);
 
         for (Artist artist : artistSongMap.keySet())
-            if (artistSongMap.get(artist).contains(song))
+            if (artistSongMap.get(artist).contains(song)) {
+                artist.setLikes(artist.getLikes() + 1);
                 artistLikeMap.get(artist).add(user);
+            }
 
         return song;
     }
@@ -232,10 +235,9 @@ public class SpotifyRepository {
         int likes = 0;
         String artistName = "";
 
-        for (Artist artist : artistLikeMap.keySet()) {
-            int size = artistLikeMap.get(artist).size();
-            if (size > likes) {
-                likes = size;
+        for (Artist artist : artists) {
+            if (artist.getLikes() > likes) {
+                likes = artist.getLikes();
                 artistName = artist.getName();
             }
         }
@@ -247,10 +249,9 @@ public class SpotifyRepository {
         int likes = 0;
         String songName = "";
 
-        for (Song song : songLikeMap.keySet()) {
-            int size = songLikeMap.get(song).size();
-            if (size > likes) {
-                likes = size;
+        for (Song song : songs) {
+            if (song.getLikes() > likes) {
+                likes = song.getLikes();
                 songName = song.getTitle();
             }
         }
