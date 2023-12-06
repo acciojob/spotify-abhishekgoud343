@@ -47,6 +47,8 @@ public class SpotifyRepository {
         User user = new User(name, mobile);
         users.add(user);
 
+        userPlaylistMap.put(user, new ArrayList<>());
+
         return user;
     }
 
@@ -61,6 +63,8 @@ public class SpotifyRepository {
     public Artist createArtist(String name) {
         Artist artist = new Artist(name);
         artists.add(artist);
+        artistAlbumMap.put(artist, new ArrayList<>());
+        artistSongMap.put(artist, new ArrayList<>());
         artistLikeMap.put(artist, new ArrayList<>());
 
         return artist;
@@ -76,19 +80,16 @@ public class SpotifyRepository {
 
     public Album createAlbum(String title, String artistName) {
         Optional<Artist> optionalArtist = findArtist(artistName);
-        if (optionalArtist.isEmpty()) {
+        if (optionalArtist.isEmpty())
             optionalArtist = Optional.of(createArtist(artistName));
-            artists.add(optionalArtist.get());
-        }
         Artist artist = optionalArtist.get();
 
         Album album = new Album(title);
         albums.add(album);
 
-        List<Album> albumList = artistAlbumMap.getOrDefault(artist, new ArrayList<>());
-        albumList.add(album);
+        artistAlbumMap.get(artist).add(album);
 
-        artistAlbumMap.put(artist, albumList);
+        albumSongMap.put(album, new ArrayList<>());
 
         return album;
     }
@@ -136,11 +137,10 @@ public class SpotifyRepository {
         Playlist playlist = new Playlist(title);
         playlists.add(playlist);
 
-        List<Song> songList = playlistSongMap.getOrDefault(playlist, new ArrayList<>());
+        List<Song> songList = new ArrayList<>();
         for (Song song : songs)
             if (song.getLength() == length)
                 songList.add(song);
-
         playlistSongMap.put(playlist, songList);
 
         creatorPlaylistMap.put(user, playlist);
@@ -149,9 +149,7 @@ public class SpotifyRepository {
         listenerList.add(user);
         playlistListenerMap.put(playlist, listenerList);
 
-        List<Playlist> playlistList = userPlaylistMap.getOrDefault(user, new ArrayList<>());
-        playlistList.add(playlist);
-        userPlaylistMap.put(user, playlistList);
+        userPlaylistMap.get(user).add(playlist);
 
         return playlist;
     }
@@ -163,12 +161,10 @@ public class SpotifyRepository {
         Playlist playlist = new Playlist(title);
         playlists.add(playlist);
 
-        List<Song> songList = playlistSongMap.getOrDefault(playlist, new ArrayList<>());
+        List<Song> songList = new ArrayList<>();
         for (Song song : songs)
-            for (String songTitle : songTitles)
-                if (song.getTitle().equals(songTitle))
+            if (songTitles.contains(song.getTitle()))
                     songList.add(song);
-
         playlistSongMap.put(playlist, songList);
 
         creatorPlaylistMap.put(user, playlist);
@@ -177,9 +173,7 @@ public class SpotifyRepository {
         listenerList.add(user);
         playlistListenerMap.put(playlist, listenerList);
 
-        List<Playlist> playlistList = userPlaylistMap.getOrDefault(user, new ArrayList<>());
-        playlistList.add(playlist);
-        userPlaylistMap.put(user, playlistList);
+        userPlaylistMap.get(user).add(playlist);
 
         return playlist;
     }
@@ -194,13 +188,14 @@ public class SpotifyRepository {
 
     public Playlist findPlaylist(String mobile, String playlistTitle) throws Exception {
         User user = findUser(mobile)
-            .orElseThrow(() -> new Exception("Invalid mobile number"));
+            .orElseThrow(() -> new Exception("User does not exist"));
 
         Playlist playlist = findPlaylistByTitle(playlistTitle)
-            .orElseThrow(() -> new Exception("Invalid playlist title"));
+            .orElseThrow(() -> new Exception("Playlist does not exist"));
 
-        if (creatorPlaylistMap.containsKey(user) && creatorPlaylistMap.get(user) == playlist || playlistListenerMap.get(playlist).contains(user))
+        if ((creatorPlaylistMap.containsKey(user) && creatorPlaylistMap.get(user) == playlist) || playlistListenerMap.get(playlist).contains(user))
             return playlist;
+
         playlistListenerMap.get(playlist).add(user);
 
         if (!userPlaylistMap.get(user).contains(playlist))
