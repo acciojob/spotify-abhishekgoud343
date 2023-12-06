@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class SpotifyRepository {
-    private HashMap<Artist, List<Album>> artistAlbumMap;
-    private HashMap<Album, List<Song>> albumSongMap;
+    public HashMap<Artist, List<Album>> artistAlbumMap;
+    public HashMap<Album, List<Song>> albumSongMap;
     public HashMap<Artist, List<Song>> artistSongMap;
     public HashMap<Playlist, List<Song>> playlistSongMap;
     public HashMap<Playlist, List<User>> playlistListenerMap;
